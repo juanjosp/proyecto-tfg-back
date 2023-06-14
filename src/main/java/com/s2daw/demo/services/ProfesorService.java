@@ -81,19 +81,7 @@ public class ProfesorService {
         return Optional.ofNullable(profesorRepository.findByEmail(email));
     }
 
-    public void actualizarConteoGuardias(Integer id, Integer count) throws ChangeSetPersister.NotFoundException {
-        Optional<Profesor> optionalProfesor = profesorRepository.findById(id);
-        if (optionalProfesor.isPresent()) {
-            Profesor profesor = optionalProfesor.get();
-            profesor.setConteoGuardias(count);
-            profesorRepository.save(profesor);
-        } else {
-            throw new ChangeSetPersister.NotFoundException();
-        }
+
     }
 
 
-
-
-
-}

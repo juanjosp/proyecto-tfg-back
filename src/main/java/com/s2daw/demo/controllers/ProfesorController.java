@@ -57,15 +57,7 @@ public class ProfesorController {
         return profesor.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PutMapping("/{id}/conteo-guardias")
-    public ResponseEntity<String> actualizarConteoGuardias(@PathVariable Integer id, @RequestBody Integer count) {
-        try {
-            profesorService.actualizarConteoGuardias(id, count);
-            return ResponseEntity.ok("Conteo de guardias actualizado correctamente");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar el conteo de guardias");
-        }
-    }
+
 
 
 }

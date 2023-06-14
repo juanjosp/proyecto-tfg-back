@@ -1,12 +1,12 @@
 package com.s2daw.demo.services;
 
 import com.s2daw.demo.models.Guardia;
-import com.s2daw.demo.models.Horario;
 import com.s2daw.demo.models.Profesor;
 import com.s2daw.demo.repositories.GuardiaRepository;
+import com.s2daw.demo.repositories.ProfesorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
-import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 
 
 import java.util.List;
@@ -15,10 +15,13 @@ import java.util.Optional;
 public class GuardiaService {
 
     private final GuardiaRepository guardiaRepository;
+    private final ProfesorRepository profesorRepository;
 
     @Autowired
-    public GuardiaService(GuardiaRepository guardiaRepository) {
+    public GuardiaService(GuardiaRepository guardiaRepository,
+                          ProfesorRepository profesorRepository) {
         this.guardiaRepository = guardiaRepository;
+        this.profesorRepository = profesorRepository;
     }
 
     public List<Guardia> getAllGuardias() {
@@ -40,47 +43,38 @@ public class GuardiaService {
     public void deleteGuardia(Integer id) {
         guardiaRepository.deleteById(id);
     }
-
-    public void asignarGuardia(Integer guardiaId, Integer profesorId) throws NotFoundException {
-        Guardia guardia = guardiaRepository.findById(guardiaId).orElseThrow(NotFoundException::new);
-        // Realizar la lógica para asignar la guardia al profesor con el ID proporcionado
-        Profesor profesor = new Profesor();
-        profesor.setId(profesorId);
-        guardia.setProfesor(profesor);
-        guardiaRepository.save(guardia);
+    public List<Guardia> obtenerGuardiasPorProfesor(Integer profesorId) {
+        return guardiaRepository.findByProfesorId(profesorId);
     }
 
-    public void desasignarGuardia(Integer guardiaId) throws NotFoundException {
-        Guardia guardia = guardiaRepository.findById(guardiaId).orElseThrow(NotFoundException::new);
-        // Realizar la lógica para desasignar la guardia
-        guardia.setProfesor(null);
-        guardiaRepository.save(guardia);
-    }
-    public void actualizarProfesorIdEnGuardia(Integer guardiaId, Integer profesorId) throws NotFoundException {
-        Optional<Guardia> optionalGuardia = guardiaRepository.findById(guardiaId);
-        if (optionalGuardia.isPresent()) {
-            Guardia guardia = optionalGuardia.get();
-            Profesor profesor = new Profesor();
-            profesor.setId(profesorId);
-            guardia.setProfesor(profesor);
+    public void desasignarGuardia(Integer guardiaId) {
+        Optional<Guardia> guardiaOptional = guardiaRepository.findById(guardiaId);
+        if (guardiaOptional.isPresent()) {
+            Guardia guardia = guardiaOptional.get();
+            guardia.setProfesor(null);
             guardiaRepository.save(guardia);
-        } else {
-            throw new NotFoundException();
         }
     }
 
-    public void actualizarProfesorIdEnHorario(Integer guardiaId, Integer profesorId) throws NotFoundException {
-        Optional<Guardia> optionalGuardia = guardiaRepository.findById(guardiaId);
-        if (optionalGuardia.isPresent()) {
-            Guardia guardia = optionalGuardia.get();
-            Horario horario = guardia.getHorario();
-            Profesor profesor = new Profesor();
-            profesor.setId(profesorId);
-            horario.setProfesor(profesor);
-            guardiaRepository.save(guardia);
+    public void asignarGuardia(Integer guardiaId, Integer profesorId) throws ChangeSetPersister.NotFoundException {
+        Optional<Guardia> guardiaOptional = guardiaRepository.findById(guardiaId);
+        if (guardiaOptional.isPresent()) {
+            Guardia guardia = guardiaOptional.get();
+            Optional<Profesor> profesorOptional = profesorRepository.findById(profesorId);
+            if (profesorOptional.isPresent()) {
+                Profesor profesor = profesorOptional.get();
+                guardia.setProfesor(profesor);
+                guardiaRepository.save(guardia);
+            } else {
+                throw new ChangeSetPersister.NotFoundException();
+            }
         } else {
-            throw new NotFoundException();
+            throw new ChangeSetPersister.NotFoundException();
         }
     }
+
+
+
+
 
 }
